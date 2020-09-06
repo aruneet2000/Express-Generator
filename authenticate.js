@@ -11,10 +11,9 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-exports.getToken = function (user) {
-    return jwt.sign(user, config.secretKey,
-        { expiresIn: 3600 });
-};
+exports.getToken = user => {
+    return jwt.sign(user, config.secretKey, { expiresIn: 3600 });
+}
 
 var opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -37,3 +36,13 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
     }));
 
 exports.verifyUser = passport.authenticate('jwt', { session: false });
+exports.verifyAdmin = (req, res, next) => {
+    if (req.user.admin)
+        next();
+
+    else {
+        var err = new Error('Only admin can do it');
+        err.status = 403;
+        return next(err);
+    }
+};
